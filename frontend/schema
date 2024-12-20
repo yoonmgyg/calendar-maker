@@ -1,0 +1,197 @@
+openapi: 3.1.0
+info:
+  title: Google Calendar API
+  description: See, edit, share, and permanently delete all the calendars you can access using Google Calendar
+  version: 1.0.0
+servers:
+  - url: https://www.googleapis.com/calendar/v3
+    description: API server
+ 
+paths:
+  /calendars/primary/events:
+    get:
+      summary: Gets the events from the user's calendar
+      description: Gets a list of events from the user's primary Google Calendar.
+      operationId: listEvents
+      tags:
+        - Calendar
+      parameters:
+        - name: orderBy
+          in: query
+          description: The order of the events returned in the result. Optional. The default is an unspecified, stable order.  
+          required: false
+          schema:
+            type: string
+            enum:
+              - startTime
+              - updated
+            default: startTime
+        - name: singleEvents
+          in: query
+          description:  Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False. 
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: timeMax
+          in: query
+          description:  Upper bound (exclusive) for an event's start time to filter by. Optional. The default is not to filter by start time. Must be an RFC3339 timestamp with mandatory time zone offset, for example, 2011-06-03T10:00:00-07:00, 2011-06-03T10:00:00Z. Milliseconds may be provided but are ignored. If timeMin is set, timeMax must be greater than timeMin. 
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2024-12-01T00:00:00Z"      
+        - name: timeMin
+          in: query
+          description:  Lower bound (exclusive) for an event's end time to filter by. Optional. The default is not to filter by end time. Must be an RFC3339 timestamp with mandatory time zone offset, for example, 2011-06-03T10:00:00-07:00, 2011-06-03T10:00:00Z. Milliseconds may be provided but are ignored. If timeMax is set, timeMin must be smaller than timeMax. 
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2024-11-01T00:00:00Z"
+      responses:
+        '200':
+          description: A list of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: The event ID
+                        summary:
+                          type: string
+                          description: The event summary 
+                        start:
+                          type: object
+                          properties:
+                            dateTime:
+                              type: string
+                              format: date-time
+                              description: The start time of the event
+                            date:
+                              type: string
+                              format: date
+                              description: The start date of the all-day event
+                        end:
+                          type: object
+                          properties:
+                            dateTime:
+                              type: string
+                              format: date-time
+                              description: The end time of the event
+                            date:
+                              type: string
+                              format: date
+                              description: The end date of the all-day event
+                        location:
+                          type: string
+                          description: The location of the event
+                        description:
+                          type: string
+                          description: A description of the event
+        '401':
+          description: Unauthorized access due to missing or invalid OAuth token
+        '400':
+          description: Bad request, invalid parameters
+ 
+    post:
+      summary: Create a new event on the user's calendar
+      description: Creates a new event on the user's primary Google Calendar.
+      operationId: createEvent
+      tags:
+        - Calendar
+      requestBody:
+        description: The event data to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  description: The event title
+                location:
+                  type: string
+                  description: The event location
+                description:
+                  type: string
+                  description: The event description
+                start:
+                  type: object
+                  properties:
+                    dateTime:
+                      type: string
+                      format: date-time
+                      description: Start time of the event
+                      example: "2024-11-30T09:00:00Z"
+                    timeZone:
+                      type: string
+                      description: Time zone of the event start
+                      example: "UTC"
+                end:
+                  type: object
+                  properties:
+                    dateTime:
+                      type: string
+                      format: date-time
+                      description: End time of the event
+                      example: "2024-11-30T10:00:00Z"
+                    timeZone:
+                      type: string
+                      description: Time zone of the event end
+                      example: "UTC"
+                attendees:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        description: The email address of an attendee
+                        example: "attendee@example.com"
+              required:
+                - summary
+                - start
+                - end
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The ID of the created event
+                  summary:
+                    type: string
+                    description: The event summary (title)
+                  start:
+                    type: object
+                    properties:
+                      dateTime:
+                        type: string
+                        format: date-time
+                        description: The start time of the event
+                  end:
+                    type: object
+                    properties:
+                      dateTime:
+                        type: string
+                        format: date-time
+                        description: The end time of the event
+        '400':
+          description: Bad request, invalid event data
+        '401':
+          description: Unauthorized access due to missing or invalid OAuth token
+        '500':
+          description: Internal server error
